@@ -1,14 +1,28 @@
 package main
 
 import (
-    "net/http"
 	"log"
-	"github.com/Colvin-Y/lunaticvibes-backend/impl"
+	"net/http"
+	"os"
+
+	logger "github.com/Colvin-Y/lunaticvibes-backend/common/log"
+	processor "github.com/Colvin-Y/lunaticvibes-backend/impl"
 )
 
-func main(){
+func main() {
+	// 初始化 logger
+	logger, err := logger.NewLogger("/var/log/lunaticvibes/lc.log")
+	if err != nil {
+		os.Exit(1)
+	}
+	defer logger.Close()
+
 	// 注册路由处理函数
-	http.HandleFunc("/", processor.Handler)
+	scoreProcessor := &processor.ScoreProcessor{Logger: logger}
+	http.HandleFunc("/score", scoreProcessor.ScoreHandlerSet)
+
+	signUpProcessor := &processor.SignUpProcessor{Logger: logger}
+	http.HandleFunc("/signup", signUpProcessor.SignUpHandlerSet)
 
 	// 启动服务
 	log.Print("Server started on :8088")
