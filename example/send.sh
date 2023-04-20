@@ -1,6 +1,7 @@
 #!/bin/bash
 curl -X POST \
-	-F 'score=90' \
-	-F 'userID=123' \
-	-F 'file=@/root/data/code/lunaticvibes-backend/example/test.txt' \
-	http://localhost:8088/score
+	-F 'userName=Darkzero' \
+	-F 'userNickname=IceRabb' \
+	-F 'userEmail=12315@qq.com' \
+	-F 'userPwd=12315' \
+	http://localhost:8088/signup
