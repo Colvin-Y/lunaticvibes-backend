@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (sp *ScoreProcessor) Insert() error {
+func (sp *ScoreProcessor) scoreInsert() error {
 	// 设置数据库连接选项
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 
@@ -63,18 +64,25 @@ func doScoreSyncPrecheck(w http.ResponseWriter, r *http.Request, sp *ScoreProces
 func doScoreSyncDataParse(w http.ResponseWriter, r *http.Request, sp *ScoreProcessor) error {
 	// 解析表单数据
 	userID := r.FormValue("userID")
+	isCourse := r.FormValue("isCourse")
 	songHash := r.FormValue("songHash")
+	courseHash := r.FormValue("courseHash")
 	clearType := r.FormValue("clearType")
+	lnMode := r.FormValue("lnMode")
 	score := r.FormValue("score")
+	scoreMax := r.FormValue("scoreMax")
+	scoreRate := r.FormValue("scoreRate")
+	scoreRank := r.FormValue("scoreRank")
 	scorePG := r.FormValue("scorePG")
-	scoreGR := r.FormValue("scorePG")
-	scoreGD := r.FormValue("scorePG")
-	scoreBD := r.FormValue("scorePG")
-	scorePR := r.FormValue("scorePG")
+	scoreGR := r.FormValue("scoreGR")
+	scoreGD := r.FormValue("scoreGD")
+	scoreBD := r.FormValue("scoreBD")
+	scorePR := r.FormValue("scorePR")
 	combo := r.FormValue("combo")
 	laneOp := r.FormValue("laneOp")
 	gaugeOp := r.FormValue("gaugeOp")
 	inputType := r.FormValue("inputType")
+	updateTime := time.Now().Format("2006-01-02 15:04:05")
 	file, _, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -91,9 +99,15 @@ func doScoreSyncDataParse(w http.ResponseWriter, r *http.Request, sp *ScoreProce
 
 	data := &ScoreData{
 		UserID:         string(userID),
+		IsCourse:       string(isCourse),
 		SongHash:       string(songHash),
+		CourseHash:     string(courseHash),
 		ClearType:      string(clearType),
+		LnMode:         string(lnMode),
 		Score:          string(score),
+		ScoreMax:       string(scoreMax),
+		ScoreRate:      string(scoreRate),
+		ScoreRank:      string(scoreRank),
 		ScorePG:        string(scorePG),
 		ScoreGR:        string(scoreGR),
 		ScoreGD:        string(scoreGD),
@@ -103,6 +117,7 @@ func doScoreSyncDataParse(w http.ResponseWriter, r *http.Request, sp *ScoreProce
 		LaneOp:         string(laneOp),
 		GaugeOp:        string(gaugeOp),
 		InputType:      string(inputType),
+		UpdateTime:     string(updateTime),
 		ReplayFileData: string(content),
 	}
 
@@ -118,8 +133,8 @@ func doScoreSyncDataParse(w http.ResponseWriter, r *http.Request, sp *ScoreProce
 }
 
 func doScoreSyncDataSave(w http.ResponseWriter, r *http.Request, sp *ScoreProcessor) error {
-	sp.Logger.Info(fmt.Sprintf("start to inser data[%v] to mongo", *sp.data))
-	err := sp.Insert()
+	sp.Logger.Info(fmt.Sprintf("start to insert data[%v] to mongo", *sp.data))
+	err := sp.scoreInsert()
 	if err != nil {
 		sp.Logger.Error(err.Error())
 		return err
